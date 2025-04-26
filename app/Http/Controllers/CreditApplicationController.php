@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CreditApplication;
 use App\Models\Phone;
+use App\Models\Installment;
 use Illuminate\Http\Request;
 
 class CreditApplicationController extends Controller
@@ -26,7 +27,6 @@ class CreditApplicationController extends Controller
         $validated = $request->validate([
             'client_id' => 'required|exists:clients,id',
             'phone_id' => 'required|exists:phones,id',
-            'amount' => 'required|numeric|min:0',
             'term' => 'required|integer|min:1',
             'monthly_interest_rate' => 'required|numeric|min:0',
         ]);
@@ -38,8 +38,7 @@ class CreditApplicationController extends Controller
         //If the client has an approved or pending credit application, we abort and return an error 
         if($activeCreditFound){
             return response()->json([
-                'message' => 'El cliente ya tiene una solicitud de crédito '
-                . $activeCreditFound->state === 'approved' ? 'aprobada' : 'pendiente',
+                'message' => 'El cliente ya tiene una solicitud de crédito ' . ($activeCreditFound->state === 'approved' ? 'aprobada' : 'pendiente'),
             ], 400);
         }
 
@@ -55,9 +54,21 @@ class CreditApplicationController extends Controller
         
         //Then we create the credit application
         $validated['state'] = 'pending';
+        $validated['amount'] = $phone->price;
 
-        // dd($validated);
         $application = CreditApplication::create($validated);
+
+        //Then we create the installments
+        //valor cuota = capital * (1 + rate/100 * plazo) / plazo
+        $installmentAmount = $validated['amount'] * (1 + $validated['monthly_interest_rate']/100 * $validated['term']) / $validated['term'];
+
+        $installment = [
+            'application_id' => $application->id,
+            'quantity' => $validated['term'],
+            'amount' => $installmentAmount
+        ];
+
+        $installments = Installment::create($installment);
 
 
         return response()->json([
