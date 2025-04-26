@@ -107,7 +107,7 @@
                 data.data.forEach(phone => {
                     const option = document.createElement('option');
                     option.value = phone.id;
-                    option.textContent = `${phone.brand} ${phone.model} - $${phone.price}`;
+                    option.textContent = `${phone.model} - $${phone.price}`;
                     selectElement.appendChild(option);
                 });
             } catch (error) {
