@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CreditApplicationController;
+use App\Http\Controllers\ClientController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -23,3 +24,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('/credits', [CreditApplicationController::class, 'store']);
 Route::get('/credits/{id}', [CreditApplicationController::class, 'getCreditStatus']);
 Route::get('/credits/{id}/installments', [CreditApplicationController::class, 'indexInstallments']);
+
+// Client Routes
+Route::get('/clients', [ClientController::class, 'index']);
