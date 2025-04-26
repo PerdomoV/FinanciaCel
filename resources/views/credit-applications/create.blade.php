@@ -32,9 +32,11 @@
                 </div>
 
                 <div>
-                    <label for="phone_id" class="block text-sm font-medium text-gray-700">ID del Teléfono</label>
-                    <input type="number" id="phone_id" name="phone_id" required
+                    <label for="phone_id" class="block text-sm font-medium text-gray-700">Teléfono</label>
+                    <select id="phone_id" name="phone_id" required
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">Seleccione un teléfono</option>
+                    </select>
                 </div>
 
                 <div>
@@ -86,8 +88,39 @@
             }
         }
 
-        // Fetch clients when the page loads
-        document.addEventListener('DOMContentLoaded', fetchClients);
+        // Function to fetch and populate phones
+        async function fetchPhones() {
+            try {
+                const response = await fetch('/api/phones', {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al obtener los teléfonos');
+                }
+
+                const data = await response.json();
+                const selectElement = document.getElementById('phone_id');
+
+                data.data.forEach(phone => {
+                    const option = document.createElement('option');
+                    option.value = phone.id;
+                    option.textContent = `${phone.brand} ${phone.model} - $${phone.price}`;
+                    selectElement.appendChild(option);
+                });
+            } catch (error) {
+                document.getElementById('errorMessage').textContent = error.message;
+                document.getElementById('errorAlert').classList.remove('hidden');
+            }
+        }
+
+        // Fetch clients and phones when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchClients();
+            fetchPhones();
+        });
 
         document.getElementById('creditApplicationForm').addEventListener('submit', async function(e) {
             e.preventDefault();

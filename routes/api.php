@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CreditApplicationController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\PhoneController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -27,3 +28,6 @@ Route::get('/credits/{id}/installments', [CreditApplicationController::class, 'i
 
 // Client Routes
 Route::get('/clients', [ClientController::class, 'index']);
+
+// Phone Routes
+Route::get('/phones', [PhoneController::class, 'index']);
