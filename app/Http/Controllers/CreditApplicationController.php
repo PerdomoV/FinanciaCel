@@ -28,7 +28,7 @@ class CreditApplicationController extends Controller
             'phone_id' => 'required|exists:phones,id',
             'amount' => 'required|numeric|min:0',
             'term' => 'required|integer|min:1',
-            'monthly_interest_rate' => 'required|numeric|min:0|max:1',
+            'monthly_interest_rate' => 'required|numeric|min:0',
         ]);
 
         //Then we check if the client has an approved or pending credit application
@@ -55,6 +55,8 @@ class CreditApplicationController extends Controller
         
         //Then we create the credit application
         $validated['state'] = 'pending';
+
+        // dd($validated);
         $application = CreditApplication::create($validated);
 
 
