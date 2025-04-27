@@ -23,6 +23,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 // Credit Application Routes
 Route::post('/credits', [CreditApplicationController::class, 'store']);
+Route::post('/credits/simulate', [CreditApplicationController::class, 'simulate']);
 Route::get('/credits/{id}', [CreditApplicationController::class, 'getCreditStatus']);
 Route::get('/credits/{id}/installments', [CreditApplicationController::class, 'indexInstallments']);
 

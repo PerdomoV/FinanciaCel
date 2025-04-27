@@ -34,7 +34,7 @@ class CreditApplicationController extends Controller
         for($k = 1; $k <= $term; $k++){
 
             if($k == 1){
-                $saldoInicial = $price;
+                $saldoInicial = (float)$price;
             }else{
                 $saldoInicial = $saldoInicial - $installmentAmount;
             }
@@ -53,7 +53,7 @@ class CreditApplicationController extends Controller
         }
 
         $amortizationData = [
-            'valor_credito' => $price,
+            'valor_credito' => (float)$price,
             'tasa_interes' => $rate,
             'plazo' => $term,
             'tabla_amortizacion' => $amortizationTable,

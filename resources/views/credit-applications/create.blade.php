@@ -6,6 +6,9 @@
     <title>Nueva Solicitud de Crédito</title>
     <!-- Include Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include SweetAlert2 -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-gray-100">
     <div class="min-h-screen flex items-center justify-center">
@@ -138,6 +141,38 @@
             };
 
             try {
+                const response = await fetch('/api/credits/simulate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Error al procesar la solicitud');
+                }
+
+                console.log(data);
+                //show the dialog with the data
+                showDialog(data, formData);
+
+                // Reset form
+                e.target.reset();
+
+            } catch (error) {
+                // Show error message
+                document.getElementById('errorMessage').textContent = error.message;
+                document.getElementById('errorAlert').classList.remove('hidden');
+            }
+        });
+
+        async function submitCreditApplication(formData) {
+            try {
                 const response = await fetch('/api/credits', {
                     method: 'POST',
                     headers: {
@@ -154,19 +189,98 @@
                     throw new Error(data.message || 'Error al procesar la solicitud');
                 }
 
-                // Show success message
-                document.getElementById('successMessage').textContent = data.message;
-                document.getElementById('successAlert').classList.remove('hidden');
-                
-                // Reset form
-                e.target.reset();
-
+                return data;
             } catch (error) {
-                // Show error message
-                document.getElementById('errorMessage').textContent = error.message;
-                document.getElementById('errorAlert').classList.remove('hidden');
+                Swal.showValidationMessage(error.message);
             }
-        });
+        }
+
+        function showDialog(data, formData){
+            //show the dialog with the data
+            const amortizationTableHTML = `
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white border border-gray-300">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-6 py-3 border-b text-left">Periodo</th>
+                                <th class="px-6 py-3 border-b text-right">Saldo Inicial</th>
+                                <th class="px-6 py-3 border-b text-right">Valor Cuota</th>
+                                <th class="px-6 py-3 border-b text-right">Valor Interés</th>
+                                <th class="px-6 py-3 border-b text-right">Saldo Capital</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.amortizationData.tabla_amortizacion.map(row => `
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-3 border-b text-left">${row.periodo}</td>
+                                    <td class="px-6 py-3 border-b text-right">$${row.saldo_inicial.toFixed(2)}</td>
+                                    <td class="px-6 py-3 border-b text-right">$${row.valor_cuota.toFixed(2)}</td>
+                                    <td class="px-6 py-3 border-b text-right">$${row.valor_interes.toFixed(2)}</td>
+                                    <td class="px-6 py-3 border-b text-right">$${row.saldo_capital.toFixed(2)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                        <tfoot class="bg-gray-100">
+                            <tr>
+                                <td colspan="2" class="px-6 py-3 border-b font-bold">Totales:</td>
+                                <td class="px-6 py-3 border-b text-right font-bold">$${data.amortizationData.total_cuotas.toFixed(2)}</td>
+                                <td class="px-6 py-3 border-b text-right font-bold">$${data.amortizationData.total_intereses.toFixed(2)}</td>
+                                <td class="px-6 py-3 border-b text-right font-bold">$${data.amortizationData.total_pagado.toFixed(2)}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            `;
+
+            dialogHTML = `
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-bold mb-4">Tabla de amortización</h2>
+                    <div class="grid grid-cols-3 gap-4 mb-6">
+                        <div class="p-3 bg-gray-50 rounded">
+                            <p class="text-sm text-gray-600">Valor del crédito:</p>
+                            <p class="text-lg font-semibold">$${data.amortizationData.valor_credito.toFixed(2)}</p>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded">
+                            <p class="text-sm text-gray-600">Tasa de interés:</p>
+                            <p class="text-lg font-semibold">${data.amortizationData.tasa_interes}%</p>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded">
+                            <p class="text-sm text-gray-600">Plazo:</p>
+                            <p class="text-lg font-semibold">${data.amortizationData.plazo} meses</p>
+                        </div>
+                    </div>
+                    ${amortizationTableHTML}
+                </div>
+            `;
+
+            const selectedPhone = (
+                document.getElementById('phone_id')
+                .options[document.getElementById('phone_id').selectedIndex]
+                .text
+            ).split(' - ')[0];
+
+         
+
+            Swal.fire({
+                title: 'Simulación de crédito para ' + selectedPhone,
+                html: dialogHTML,
+                showCloseButton: true,
+                showCancelButton: true,
+                showConfirmButton: true,
+                confirmButtonText: 'Confirmar solicitud',
+                cancelButtonText: 'Cancelar',
+                width: 1000,
+                preConfirm: () => submitCreditApplication(formData)
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Solicitud Creada',
+                        text: 'La solicitud de crédito ha sido creada exitosamente',
+                        icon: 'success'
+                    });
+                }
+            })
+        }
     </script>
 </body>
 </html> 
