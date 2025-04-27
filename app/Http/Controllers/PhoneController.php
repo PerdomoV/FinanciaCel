@@ -21,7 +21,7 @@ class PhoneController extends Controller
     }
 
 
-    public function updatePhoneStock($phoneId, $quantity)
+    public static function updatePhoneStock($phoneId, $quantity)
     {
         $phone = Phone::find($phoneId);
         $phone->stock -= $quantity;
