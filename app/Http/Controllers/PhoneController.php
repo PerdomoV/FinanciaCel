@@ -19,4 +19,12 @@ class PhoneController extends Controller
             'message' => 'Phones retrieved successfully'
         ]);
     }
+
+
+    public function updatePhoneStock($phoneId, $quantity)
+    {
+        $phone = Phone::find($phoneId);
+        $phone->stock -= $quantity;
+        $phone->save();
+    }
 } 
