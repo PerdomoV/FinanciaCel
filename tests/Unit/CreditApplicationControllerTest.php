@@ -8,11 +8,21 @@ use App\Http\Controllers\CreditApplicationController;
 class CreditApplicationControllerTest extends TestCase
 {
     private CreditApplicationController $controller;
+    private const DECIMAL_PRECISION = 4;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->controller = new CreditApplicationController();
+    }
+
+    private function assertFloatEquals($expected, $actual, $message = '')
+    {
+        $this->assertEquals(
+            round($expected, self::DECIMAL_PRECISION),
+            round($actual, self::DECIMAL_PRECISION),
+            $message
+        );
     }
 
     public function test_amortization_calculation_basic()
@@ -32,20 +42,29 @@ class CreditApplicationControllerTest extends TestCase
         $this->assertArrayHasKey('tabla_amortizacion', $result);
         $this->assertArrayHasKey('total_intereses', $result);
         $this->assertArrayHasKey('total_cuotas', $result);
-        $this->assertArrayHasKey('total_pagado', $result);
+        $this->assertArrayHasKey('total_abono_capital', $result);
 
         // Verify input values are correctly stored
         $this->assertEquals($price, $result['valor_credito']);
         $this->assertEquals($rate, $result['tasa_interes']);
         $this->assertEquals($term, $result['plazo']);
 
-        // Verify amortization table structure
+        // Calculate expected values based on the new formula
+        $expectedInstallment = $price * (1 + $rate/100 * $term) / $term;
+        $expectedTotalInterest = $price * ($rate/100) * $term;
+        $expectedTotalPayment = $price * (1 + $rate/100 * $term);
+
+        // Verify amortization table structure and first payment
         $this->assertCount($term, $result['tabla_amortizacion']);
-        
-        // Check first payment
         $firstPayment = $result['tabla_amortizacion'][0];
         $this->assertEquals(1, $firstPayment['periodo']);
         $this->assertEquals($price, $firstPayment['saldo_inicial']);
+        $this->assertFloatEquals($expectedInstallment, $firstPayment['valor_cuota']);
+        
+        // Verify totals
+        $this->assertFloatEquals($expectedTotalInterest, $result['total_intereses']);
+        $this->assertFloatEquals($expectedTotalPayment, $result['total_cuotas']);
+        $this->assertFloatEquals($price, $result['total_abono_capital']);
     }
 
     public function test_amortization_with_zero_interest()
@@ -58,31 +77,41 @@ class CreditApplicationControllerTest extends TestCase
 
         // With 0% interest, monthly payment should be exactly price/term
         $expectedMonthlyPayment = $price / $term;
-        $this->assertEquals($expectedMonthlyPayment, $result['tabla_amortizacion'][0]['valor_cuota']);
+        $this->assertFloatEquals($expectedMonthlyPayment, $result['tabla_amortizacion'][0]['valor_cuota']);
         
         // Total paid should equal the original price
-        $this->assertEquals($price, $result['total_pagado']);
+        $this->assertFloatEquals($price, $result['total_cuotas']);
         
         // Total interest should be 0
-        $this->assertEquals(0, $result['total_intereses']);
+        $this->assertFloatEquals(0, $result['total_intereses']);
+        
+        // Total capital payment should equal the price
+        $this->assertFloatEquals($price, $result['total_abono_capital']);
     }
 
-    public function test_amortization_total_paid_greater_than_principal()
+    public function test_amortization_total_paid_calculation()
     {
         $price = 1000;
-        $rate = 5;      // 5% monthly interest
+        $rate = 5;      // 5% monthly interest rate
         $term = 12;
 
         $result = $this->controller->amortization($price, $rate, $term);
 
-        // With interest, total paid should be greater than principal
-        $this->assertGreaterThan($price, $result['total_pagado']);
+        // Calculate expected values
+        $expectedTotalPayment = $price * (1 + $rate/100 * $term);
+        $expectedTotalInterest = $price * ($rate/100) * $term;
+
+        // Verify total payment
+        $this->assertFloatEquals($expectedTotalPayment, $result['total_cuotas']);
         
-        // Total interest should be positive
-        $this->assertGreaterThan(0, $result['total_intereses']);
+        // Verify total interest
+        $this->assertFloatEquals($expectedTotalInterest, $result['total_intereses']);
+        
+        // Verify total capital payment equals original price
+        $this->assertFloatEquals($price, $result['total_abono_capital']);
     }
 
-    public function test_amortization_decreasing_balance()
+    public function test_amortization_constant_installment()
     {
         $price = 1000;
         $rate = 2;
@@ -90,12 +119,29 @@ class CreditApplicationControllerTest extends TestCase
 
         $result = $this->controller->amortization($price, $rate, $term);
 
-        $previousBalance = $price;
+        // Calculate expected constant installment
+        $expectedInstallment = $price * (1 + $rate/100 * $term) / $term;
         
-        // Check that the balance decreases with each payment
+        // Verify all installments are equal
         foreach ($result['tabla_amortizacion'] as $payment) {
-            $this->assertLessThanOrEqual($previousBalance, $payment['saldo_inicial']);
-            $previousBalance = $payment['saldo_inicial'];
+            $this->assertFloatEquals($expectedInstallment, $payment['valor_cuota']);
+        }
+    }
+
+    public function test_amortization_interest_calculation()
+    {
+        $price = 1000;
+        $rate = 2;
+        $term = 12;
+
+        $result = $this->controller->amortization($price, $rate, $term);
+
+        // Expected monthly interest is constant (price * rate/100)
+        $expectedMonthlyInterest = $price * $rate/100;
+        
+        // Verify interest calculation for each period
+        foreach ($result['tabla_amortizacion'] as $payment) {
+            $this->assertFloatEquals($expectedMonthlyInterest, $payment['valor_interes']);
         }
     }
 } 

@@ -202,10 +202,11 @@
                     <table class="min-w-full bg-white border border-gray-300">
                         <thead class="bg-gray-100">
                             <tr>
-                                <th class="px-6 py-3 border-b text-left">Periodo</th>
+                                <th class="px-6 py-3 border-b text-left whitespace-nowrap min-w-[100px]">Periodo</th>
                                 <th class="px-6 py-3 border-b text-right">Saldo Inicial</th>
                                 <th class="px-6 py-3 border-b text-right">Valor Cuota</th>
                                 <th class="px-6 py-3 border-b text-right">Valor Interés</th>
+                                <th class="px-6 py-3 border-b text-right">Abono Capital</th>
                                 <th class="px-6 py-3 border-b text-right">Saldo Capital</th>
                             </tr>
                         </thead>
@@ -216,6 +217,7 @@
                                     <td class="px-6 py-3 border-b text-right">$${row.saldo_inicial.toFixed(2)}</td>
                                     <td class="px-6 py-3 border-b text-right">$${row.valor_cuota.toFixed(2)}</td>
                                     <td class="px-6 py-3 border-b text-right">$${row.valor_interes.toFixed(2)}</td>
+                                    <td class="px-6 py-3 border-b text-right">$${row.abono_capital.toFixed(2)}</td>
                                     <td class="px-6 py-3 border-b text-right">$${row.saldo_capital.toFixed(2)}</td>
                                 </tr>
                             `).join('')}
@@ -225,7 +227,7 @@
                                 <td colspan="2" class="px-6 py-3 border-b font-bold">Totales:</td>
                                 <td class="px-6 py-3 border-b text-right font-bold">$${data.amortizationData.total_cuotas.toFixed(2)}</td>
                                 <td class="px-6 py-3 border-b text-right font-bold">$${data.amortizationData.total_intereses.toFixed(2)}</td>
-                                <td class="px-6 py-3 border-b text-right font-bold">$${data.amortizationData.total_pagado.toFixed(2)}</td>
+                                <td class="px-6 py-3 border-b text-right font-bold">$${data.amortizationData.total_abono_capital.toFixed(2)}</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -269,7 +271,7 @@
                 showConfirmButton: true,
                 confirmButtonText: 'Confirmar solicitud',
                 cancelButtonText: 'Cancelar',
-                width: 1000,
+                width: 1100,
                 preConfirm: () => submitCreditApplication(formData)
             }).then((result) => {
                 if (result.isConfirmed) {

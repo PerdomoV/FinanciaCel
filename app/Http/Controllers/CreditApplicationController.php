@@ -30,30 +30,30 @@ class CreditApplicationController extends Controller
         $i = $rate/100;
 
         //valor cuota = capital * (1 + rate/100 * plazo) / plazo
-        $installmentAmount = $price * (1 + $i * $term ) / $term;
+        $installmentAmount = (float)$price * (1 + $i * $term ) / $term;
 
         $totalIntereses = 0;
         $totalCuotas = 0;
-        $totalPagado = 0;
-
+        $totalAbonoCapital = 0;
         for($k = 1; $k <= $term; $k++){
 
             if($k == 1){
                 $saldoInicial = (float)$price;
             }else{
-                $saldoInicial = $saldoInicial - $installmentAmount;
+                $saldoInicial = $saldoInicial - ($installmentAmount - (float)$price * $i);
             }
 
-            $totalIntereses += $saldoInicial * $i;
+            $totalIntereses += (float)$price * $i;
             $totalCuotas += $installmentAmount;
-            $totalPagado += $installmentAmount;
+            $totalAbonoCapital += $installmentAmount - (float)$price * $i;
 
             $amortizationTable[] = [
                 'periodo' => $k,
                 'saldo_inicial' => $saldoInicial,
-                'valor_cuota' => $installmentAmount,
-                'valor_interes' => $saldoInicial * $i,
-                'saldo_capital' => $saldoInicial - ($installmentAmount - $saldoInicial * $i),
+                'valor_cuota'   => $installmentAmount,
+                'valor_interes' => (float)$price * $i,
+                'abono_capital' => $installmentAmount - (float)$price * $i,
+                'saldo_capital' => $saldoInicial - ($installmentAmount - (float)$price * $i)
             ];
         }
 
@@ -64,7 +64,7 @@ class CreditApplicationController extends Controller
             'tabla_amortizacion' => $amortizationTable,
             'total_intereses' => $totalIntereses,
             'total_cuotas' => $totalCuotas,
-            'total_pagado' => $totalPagado,
+            'total_abono_capital' => $totalAbonoCapital
         ];
 
         return $amortizationData;
