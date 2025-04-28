@@ -1,0 +1,533 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Documentación API FinanciaCel",
+        "description": "Documentación de la API para el sistema de solicitudes de crédito FinanciaCel",
+        "contact": {
+            "name": "Soporte FinanciaCel",
+            "email": "admin@financiacel.com"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://my-default-host.com",
+            "description": "API FinanciaCel"
+        }
+    ],
+    "paths": {
+        "/api/clients": {
+            "get": {
+                "tags": [
+                    "Clientes"
+                ],
+                "summary": "Obtener lista de todos los clientes",
+                "description": "Devuelve la lista de todos los clientes con su información",
+                "operationId": "d00d20521584ab5da83e088abb7aded2",
+                "responses": {
+                    "200": {
+                        "description": "Operación exitosa",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Clientes obtenidos exitosamente"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "John Doe"
+                                                    },
+                                                    "cc": {
+                                                        "type": "string",
+                                                        "example": "1234567890"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/credits/simulate": {
+            "post": {
+                "tags": [
+                    "Aplicaciones de crédito"
+                ],
+                "summary": "Simular una solicitud de crédito",
+                "description": "Simula una solicitud de crédito con los parámetros proporcionados y devuelve la tabla de amortización",
+                "operationId": "94b6a0adb3f31fa3f6254cced1f4ac2c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "client_id",
+                                    "phone_id",
+                                    "term",
+                                    "monthly_interest_rate"
+                                ],
+                                "properties": {
+                                    "client_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "phone_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "term": {
+                                        "type": "integer",
+                                        "example": 12
+                                    },
+                                    "monthly_interest_rate": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 2.5
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Simulación exitosa",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Simulación de crédito realizada exitosamente"
+                                        },
+                                        "amortizationData": {
+                                            "properties": {
+                                                "valor_credito": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 799.99
+                                                },
+                                                "tasa_interes": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 2.5
+                                                },
+                                                "plazo": {
+                                                    "type": "integer",
+                                                    "example": 12
+                                                },
+                                                "tabla_amortizacion": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "periodo": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "saldo_inicial": {
+                                                                "type": "number",
+                                                                "format": "float",
+                                                                "example": 799.99
+                                                            },
+                                                            "valor_cuota": {
+                                                                "type": "number",
+                                                                "format": "float",
+                                                                "example": 73.33
+                                                            },
+                                                            "valor_interes": {
+                                                                "type": "number",
+                                                                "format": "float",
+                                                                "example": 20
+                                                            },
+                                                            "saldo_capital": {
+                                                                "type": "number",
+                                                                "format": "float",
+                                                                "example": 746.66
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "total_intereses": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 240
+                                                },
+                                                "total_cuotas": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 880
+                                                },
+                                                "total_pagado": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 880
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Solicitud incorrecta",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "El cliente ya tiene una solicitud de crédito pendiente"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/credits": {
+            "post": {
+                "tags": [
+                    "Aplicaciones de crédito"
+                ],
+                "summary": "Crear una nueva solicitud de crédito",
+                "description": "Crea una nueva solicitud de crédito con los parámetros proporcionados",
+                "operationId": "adb3fe71484112e8040b650e5c62964f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "client_id",
+                                    "phone_id",
+                                    "term",
+                                    "monthly_interest_rate"
+                                ],
+                                "properties": {
+                                    "client_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "phone_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "term": {
+                                        "type": "integer",
+                                        "example": 12
+                                    },
+                                    "monthly_interest_rate": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 2.5
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Solicitud de crédito creada exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Aplicación de crédito creada exitosamente"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "client_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "phone_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "term": {
+                                                    "type": "integer",
+                                                    "example": 12
+                                                },
+                                                "monthly_interest_rate": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 2.5
+                                                },
+                                                "amount": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 799.99
+                                                },
+                                                "state": {
+                                                    "type": "string",
+                                                    "example": "pending"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Solicitud incorrecta",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "El cliente ya tiene una solicitud de crédito pendiente"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/credits/{id}/status": {
+            "get": {
+                "tags": [
+                    "Aplicaciones de crédito"
+                ],
+                "summary": "Obtener estado de solicitud de crédito",
+                "description": "Devuelve el estado de una solicitud de crédito específica",
+                "operationId": "4c6dd36d0f3c038a9062a5a0f4da0a9c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la solicitud de crédito",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Éxito",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Estado de la solicitud de crédito obtenido exitosamente"
+                                        },
+                                        "estado": {
+                                            "type": "string",
+                                            "example": "pending"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Solicitud de crédito no encontrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "No se encontró la solicitud de crédito"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/credits/{id}/installments": {
+            "get": {
+                "tags": [
+                    "Aplicaciones de crédito"
+                ],
+                "summary": "Obtener cuotas de solicitud de crédito",
+                "description": "Devuelve las cuotas de una solicitud de crédito específica",
+                "operationId": "963b522f45d4fb80abaa7d96102e8dce",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la solicitud de crédito",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Éxito",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Cuotas del crédito obtenidas exitosamente"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "application_id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "quantity": {
+                                                        "type": "integer",
+                                                        "example": 12
+                                                    },
+                                                    "amount": {
+                                                        "type": "number",
+                                                        "format": "float",
+                                                        "example": 73.33
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Solicitud de crédito no encontrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "No se encontró la solicitud de crédito"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/phones": {
+            "get": {
+                "tags": [
+                    "Telefonos"
+                ],
+                "summary": "Obtener lista de todos los teléfonos",
+                "description": "Devuelve la lista de todos los teléfonos disponibles",
+                "operationId": "71f258a6cac5f315666063e0b09b2438",
+                "responses": {
+                    "200": {
+                        "description": "Operación exitosa",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "model": {
+                                                        "type": "string",
+                                                        "example": "iPhone 13"
+                                                    },
+                                                    "price": {
+                                                        "type": "number",
+                                                        "format": "float",
+                                                        "example": 799.99
+                                                    },
+                                                    "stock": {
+                                                        "type": "integer",
+                                                        "example": 10
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Teléfonos obtenidos exitosamente"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Clientes",
+            "description": "Endpoints de la API para gestión de clientes"
+        },
+        {
+            "name": "Aplicaciones de crédito",
+            "description": "Endpoints de la API para la gestión de solicitudes de crédito"
+        },
+        {
+            "name": "Telefonos",
+            "description": "Endpoints de la API para gestión de teléfonos"
+        }
+    ]
+}

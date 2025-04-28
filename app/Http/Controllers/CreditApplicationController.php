@@ -8,7 +8,12 @@ use App\Models\Installment;
 use Illuminate\Http\Request;
 use App\Http\Controllers\PhoneController;
 
-
+/**
+ * @OA\Tag(
+ *     name="Aplicaciones de crédito",
+ *     description="Endpoints de la API para la gestión de solicitudes de crédito"
+ * )
+ */
 class CreditApplicationController extends Controller
 {
     
@@ -65,6 +70,62 @@ class CreditApplicationController extends Controller
         return $amortizationData;
     }
 
+    /**
+     * Simulate a credit application
+     * 
+     * @OA\Post(
+     *     path="/api/credits/simulate",
+     *     tags={"Aplicaciones de crédito"},
+     *     summary="Simular una solicitud de crédito",
+     *     description="Simula una solicitud de crédito con los parámetros proporcionados y devuelve la tabla de amortización",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"client_id", "phone_id", "term", "monthly_interest_rate"},
+     *             @OA\Property(property="client_id", type="integer", example=1),
+     *             @OA\Property(property="phone_id", type="integer", example=1),
+     *             @OA\Property(property="term", type="integer", example=12),
+     *             @OA\Property(property="monthly_interest_rate", type="number", format="float", example=2.5)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Simulación exitosa",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Simulación de crédito realizada exitosamente"),
+     *             @OA\Property(
+     *                 property="amortizationData",
+     *                 type="object",
+     *                 @OA\Property(property="valor_credito", type="number", format="float", example=799.99),
+     *                 @OA\Property(property="tasa_interes", type="number", format="float", example=2.5),
+     *                 @OA\Property(property="plazo", type="integer", example=12),
+     *                 @OA\Property(
+     *                     property="tabla_amortizacion",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="periodo", type="integer", example=1),
+     *                         @OA\Property(property="saldo_inicial", type="number", format="float", example=799.99),
+     *                         @OA\Property(property="valor_cuota", type="number", format="float", example=73.33),
+     *                         @OA\Property(property="valor_interes", type="number", format="float", example=20.00),
+     *                         @OA\Property(property="saldo_capital", type="number", format="float", example=746.66)
+     *                     )
+     *                 ),
+     *                 @OA\Property(property="total_intereses", type="number", format="float", example=240.00),
+     *                 @OA\Property(property="total_cuotas", type="number", format="float", example=880.00),
+     *                 @OA\Property(property="total_pagado", type="number", format="float", example=880.00)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Solicitud incorrecta",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="El cliente ya tiene una solicitud de crédito pendiente")
+     *         )
+     *     )
+     * )
+     */
     public function simulate(Request $request){
         
         //First we validate the request body fields
@@ -106,7 +167,49 @@ class CreditApplicationController extends Controller
     }
 
     /**
-     * Store a newly created credit application in storage.
+     * Store a newly created credit application
+     * 
+     * @OA\Post(
+     *     path="/api/credits",
+     *     tags={"Aplicaciones de crédito"},
+     *     summary="Crear una nueva solicitud de crédito",
+     *     description="Crea una nueva solicitud de crédito con los parámetros proporcionados",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"client_id", "phone_id", "term", "monthly_interest_rate"},
+     *             @OA\Property(property="client_id", type="integer", example=1),
+     *             @OA\Property(property="phone_id", type="integer", example=1),
+     *             @OA\Property(property="term", type="integer", example=12),
+     *             @OA\Property(property="monthly_interest_rate", type="number", format="float", example=2.5)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Solicitud de crédito creada exitosamente",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Aplicación de crédito creada exitosamente"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="client_id", type="integer", example=1),
+     *                 @OA\Property(property="phone_id", type="integer", example=1),
+     *                 @OA\Property(property="term", type="integer", example=12),
+     *                 @OA\Property(property="monthly_interest_rate", type="number", format="float", example=2.5),
+     *                 @OA\Property(property="amount", type="number", format="float", example=799.99),
+     *                 @OA\Property(property="state", type="string", example="pending")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Solicitud incorrecta",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="El cliente ya tiene una solicitud de crédito pendiente")
+     *         )
+     *     )
+     * )
      */
     public function store(Request $request)
     {
@@ -167,7 +270,36 @@ class CreditApplicationController extends Controller
     }
 
     /**
-     * Get the status of a credit application.
+     * Get the status of a credit application
+     * 
+     * @OA\Get(
+     *     path="/api/credits/{id}/status",
+     *     tags={"Aplicaciones de crédito"},
+     *     summary="Obtener estado de solicitud de crédito",
+     *     description="Devuelve el estado de una solicitud de crédito específica",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID de la solicitud de crédito",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Éxito",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Estado de la solicitud de crédito obtenido exitosamente"),
+     *             @OA\Property(property="estado", type="string", example="pending")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Solicitud de crédito no encontrada",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="No se encontró la solicitud de crédito")
+     *         )
+     *     )
+     * )
      */
     public function getCreditStatus($id)
     {
@@ -186,7 +318,46 @@ class CreditApplicationController extends Controller
     }
 
     /**
-     * Get the installments of a credit application.
+     * Get the installments of a credit application
+     * 
+     * @OA\Get(
+     *     path="/api/credits/{id}/installments",
+     *     tags={"Aplicaciones de crédito"},
+     *     summary="Obtener cuotas de solicitud de crédito",
+     *     description="Devuelve las cuotas de una solicitud de crédito específica",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID de la solicitud de crédito",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Éxito",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Cuotas del crédito obtenidas exitosamente"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="id", type="integer", example=1),
+     *                     @OA\Property(property="application_id", type="integer", example=1),
+     *                     @OA\Property(property="quantity", type="integer", example=12),
+     *                     @OA\Property(property="amount", type="number", format="float", example=73.33)
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Solicitud de crédito no encontrada",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="No se encontró la solicitud de crédito")
+     *         )
+     *     )
+     * )
      */
     public function indexInstallments($id)
     {
